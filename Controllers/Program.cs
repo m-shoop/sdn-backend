@@ -85,14 +85,16 @@ builder.Services.AddHostedService<GdprCleanupService>();
 builder.WebHost.UseUrls("http://localhost:5075");
 
 // Add CORS
-// TODO: tighten this up for production
-//       any origin/header/method is valid only for development
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [];
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
         policy
-            .AllowAnyOrigin()
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
