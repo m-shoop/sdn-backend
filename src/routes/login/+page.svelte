@@ -35,7 +35,7 @@
 </script>
 
 <NavigationBar />
-<section class="panel pink-bg">
+<section class="panel warm-pink-bg">
 <form onsubmit={requestLogin}>
     <div class="login-form">
         <label for="email">Email</label>
