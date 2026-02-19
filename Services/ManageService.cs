@@ -169,6 +169,7 @@ public class ManageService(NpgsqlDataSource dataSource, IEmailService emailServi
             CreateTimestamp = agreement.CreateTimestamp
         };
         await _agreementRepo.UpdateEntity(updated);
+        await _accountRepo.TouchLastActivity(agreement.Client.Id);
 
         try
         {
@@ -227,6 +228,7 @@ public class ManageService(NpgsqlDataSource dataSource, IEmailService emailServi
             return (false, "Appointment not found.");
 
         await _agreementRepo.CancelAgreement(apptId);
+        await _accountRepo.TouchLastActivity(agreement.Client.Id);
 
         try
         {
@@ -368,6 +370,7 @@ public class ManageService(NpgsqlDataSource dataSource, IEmailService emailServi
         };
 
         int newId = await _agreementRepo.CreateConfirmedAgreement(agreement);
+        await _accountRepo.TouchLastActivity(client.Id);
 
         try
         {

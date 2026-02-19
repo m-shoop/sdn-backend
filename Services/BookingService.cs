@@ -67,8 +67,11 @@ public class BookingService(NpgsqlDataSource dataSource, IEmailService emailServ
         }
         else
         {
-            client = new Client(0, request.ClientName, request.ClientEmail);
-            await accountRepo.SaveEntity(client);
+            await accountRepo.SaveEntity(new Client(0, request.ClientName, request.ClientEmail));
+            var created = await accountRepo.GetByEmailAndRole(request.ClientEmail, "Client");
+            if (created is not Client newClient)
+                return (false, "Failed to create client account.", 500);
+            client = newClient;
         }
 
         // Create and persist agreement
@@ -87,6 +90,8 @@ public class BookingService(NpgsqlDataSource dataSource, IEmailService emailServ
         var agreeRepo = new AgreementRepository(_dataSource);
         await agreeRepo.SaveEntity(agreement);
         _logger.LogInformation("Agreement saved to database for client {ClientEmail}", request.ClientEmail);
+
+        await accountRepo.TouchLastActivity(client.Id);
 
         // Validate confirmation token
         if (string.IsNullOrWhiteSpace(confirmationToken))

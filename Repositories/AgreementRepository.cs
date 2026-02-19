@@ -294,6 +294,15 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
         return expiredAgreements;
     }
 
+    public async Task<int> DeleteAgreementsOlderThan(DateOnly cutoff)
+    {
+        await using var command = _dataSource.CreateCommand(@"
+            DELETE FROM agreements WHERE date < $1;");
+        command.Parameters.AddWithValue(cutoff);
+
+        return await command.ExecuteNonQueryAsync();
+    }
+
     public async Task<int> CreateConfirmedAgreement(Agreement agreement)
     {
         await using var command = _dataSource.CreateCommand(@"

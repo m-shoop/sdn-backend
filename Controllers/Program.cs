@@ -78,6 +78,9 @@ builder.Services.AddScoped<AccountRepository>();
 // Register background service for appointment expiration
 builder.Services.AddHostedService<AppointmentExpirationService>();
 
+// Register background service for GDPR data retention cleanup
+builder.Services.AddHostedService<GdprCleanupService>();
+
 // Force the app to listen on specific ports
 builder.WebHost.UseUrls("http://localhost:5075");
 

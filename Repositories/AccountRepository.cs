@@ -63,7 +63,11 @@ public class AccountRepository(NpgsqlDataSource dataSource)
             // implement administrator later
 
             if (role == "Client"){
-                Client client = new(id, name, email);
+                int lastActivityOrdinal = reader.GetOrdinal("last_activity");
+                DateTime? lastActivity = reader.IsDBNull(lastActivityOrdinal)
+                    ? null
+                    : reader.GetFieldValue<DateTime>(lastActivityOrdinal);
+                Client client = new(id, name, email) { LastActivity = lastActivity };
                 return client;
             }
 
@@ -209,5 +213,29 @@ public class AccountRepository(NpgsqlDataSource dataSource)
         command.Parameters.AddWithValue(techId);
 
         await command.ExecuteNonQueryAsync();
+    }
+
+    // --- GDPR methods ---
+
+    public async Task TouchLastActivity(int clientId)
+    {
+        await using var command = _dataSource.CreateCommand(@"
+            UPDATE accounts SET last_activity = $1 WHERE account_id = $2;");
+        command.Parameters.AddWithValue(DateTime.UtcNow);
+        command.Parameters.AddWithValue(clientId);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
+    public async Task<int> DeleteInactiveClientAccounts(DateTime cutoff)
+    {
+        await using var command = _dataSource.CreateCommand(@"
+            DELETE FROM accounts
+            WHERE role = 'Client'
+              AND last_activity IS NOT NULL
+              AND last_activity < $1;");
+        command.Parameters.AddWithValue(cutoff);
+
+        return await command.ExecuteNonQueryAsync();
     }
 }
