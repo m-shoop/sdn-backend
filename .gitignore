@@ -1,0 +1,23 @@
+## Build output
+bin/
+obj/
+
+## .NET user secrets
+secrets.json
+
+## Local overrides with real credentials — never commit
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+
+## JetBrains Rider / VS
+.idea/
+*.user
+*.suo
+
+## Visual Studio
+.vs/
+
+## OS
+.DS_Store
+Thumbs.db
