@@ -507,7 +507,7 @@ Service: {email.ServiceName} ({email.ServiceDuration} min)
 
 To set your password, please copy and paste the following link into your browser:
 
-http://127.0.0.1:5173/auth/reset-password?token={resetToken}
+https://www.shooperdooper.nl/auth/reset-password?token={resetToken}
 
 This link will expire in 30 minutes. If you did not request this, you can safely ignore this email.";
     }
@@ -534,7 +534,7 @@ This link will expire in 30 minutes. If you did not request this, you can safely
             <table cellpadding=""0"" cellspacing=""0"" style=""margin: 30px 0;"">
               <tr>
                 <td align=""center"" style=""background-color: #769A95; border-radius: 5px;"">
-                  <a href=""http://127.0.0.1:5173/auth/reset-password?token={resetToken}""
+                  <a href=""https://www.shooperdooper.nl/auth/reset-password?token={resetToken}""
                      style=""display: inline-block; padding: 15px 40px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; font-family: Arial, sans-serif;"">
                     Set Password
                   </a>
@@ -563,7 +563,7 @@ This link will expire in 30 minutes. If you did not request this, you can safely
             
             To confirm your booking, please copy and paste the following link into your browser.
             
-            http://127.0.0.1:5173/booking/confirm?token={confirmationToken}";
+            https://www.shooperdooper.nl/booking/confirm?token={confirmationToken}";
     }
 
     private static string HtmlConfirmationLinkBody(string confirmationToken)
@@ -593,7 +593,7 @@ This link will expire in 30 minutes. If you did not request this, you can safely
             <table cellpadding=""0"" cellspacing=""0"" style=""margin: 30px 0;"">
               <tr>
                 <td align=""center"" style=""background-color: #769A95; border-radius: 5px;"">
-                  <a href=""http://127.0.0.1:5173/booking/confirm?token={confirmationToken}""
+                  <a href=""https://www.shooperdooper.nl/booking/confirm?token={confirmationToken}""
                      style=""display: inline-block; padding: 15px 40px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; font-family: Arial, sans-serif;"">
                     Confirm Appointment
                   </a>
