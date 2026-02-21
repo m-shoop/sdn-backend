@@ -74,6 +74,10 @@ builder.Services.AddScoped<TechCalendarService>();
 // Register manage service
 builder.Services.AddScoped<ManageService>();
 builder.Services.AddScoped<AccountRepository>();
+builder.Services.AddScoped<AgreementRepository>();
+
+// Register ICS feed service
+builder.Services.AddScoped<IcsFeedService>();
 
 // Register background service for appointment expiration
 builder.Services.AddHostedService<AppointmentExpirationService>();
@@ -348,5 +352,26 @@ app.MapPut("/tech/settings", async (UpdateTechSettingsRequest request, AccountRe
     await accountRepo.SetEmailNotificationPreference(techId, request.EmailNotificationsEnabled);
     return Results.Ok();
 }).RequireAuthorization();
+
+// GET /tech/calendar/feed-url — returns the ICS subscription URL for the authenticated technician
+app.MapGet("/tech/calendar/feed-url", (IcsFeedService icsFeedService, HttpContext httpContext) =>
+{
+    if (GetTechId(httpContext) is not int techId) return Results.Unauthorized();
+    var feedUrl = icsFeedService.BuildFeedUrl(techId, httpContext.Request);
+    return Results.Ok(new { feedUrl });
+}).RequireAuthorization();
+
+// GET /calendar/feed/{techId}/appointments.ics — public ICS feed, secured by HMAC token
+app.MapGet("/calendar/feed/{techId:int}/appointments.ics", async (
+    int techId,
+    string token,
+    IcsFeedService icsFeedService) =>
+{
+    if (!icsFeedService.ValidateToken(techId, token))
+        return Results.Unauthorized();
+
+    var icsContent = await icsFeedService.GenerateIcs(techId);
+    return Results.Text(icsContent, "text/calendar; charset=utf-8");
+});
 
 app.Run();

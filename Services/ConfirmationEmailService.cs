@@ -102,8 +102,8 @@ public class SmtpEmailService : IEmailService
             // TODO : add baseURL to app settings file, for now hardcoded
             if (emailTemplate == 1)
             {
-                builder.TextBody = TextConfirmationLinkBody(email.ConfirmationToken!);
-                builder.HtmlBody = HtmlConfirmationLinkBody(email.ConfirmationToken!);
+                builder.TextBody = TextConfirmationLinkBody(email.ConfirmationToken!, _settings.BaseUrl);
+                builder.HtmlBody = HtmlConfirmationLinkBody(email.ConfirmationToken!, _settings.BaseUrl);
                 _logger.LogInformation("Built confirmation link email body");
             }
             else //email Template == 2, default
@@ -480,8 +480,8 @@ Service: {email.ServiceName} ({email.ServiceDuration} min)
             message.Subject = "Password Reset - Shooper Dooper Scheduling";
 
             var builder = new BodyBuilder();
-            builder.TextBody = TextPasswordResetBody(resetToken);
-            builder.HtmlBody = HtmlPasswordResetBody(resetToken);
+            builder.TextBody = TextPasswordResetBody(resetToken, _settings.BaseUrl);
+            builder.HtmlBody = HtmlPasswordResetBody(resetToken, _settings.BaseUrl);
             message.Body = builder.ToMessageBody();
 
             using var client = new SmtpClient();
@@ -501,18 +501,18 @@ Service: {email.ServiceName} ({email.ServiceDuration} min)
         }
     }
 
-    private static string TextPasswordResetBody(string resetToken)
+    private static string TextPasswordResetBody(string resetToken, string baseUrl)
     {
         return @$"You requested a password reset for your Shooper Dooper Scheduling account.
 
 To set your password, please copy and paste the following link into your browser:
 
-https://www.shooperdooper.nl/auth/reset-password?token={resetToken}
+{baseUrl}/auth/reset-password?token={resetToken}
 
 This link will expire in 30 minutes. If you did not request this, you can safely ignore this email.";
     }
 
-    private static string HtmlPasswordResetBody(string resetToken)
+    private static string HtmlPasswordResetBody(string resetToken, string baseUrl)
     {
         return @$"<table width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #f4f4f4; padding: 20px;"">
   <tr>
@@ -534,7 +534,7 @@ This link will expire in 30 minutes. If you did not request this, you can safely
             <table cellpadding=""0"" cellspacing=""0"" style=""margin: 30px 0;"">
               <tr>
                 <td align=""center"" style=""background-color: #769A95; border-radius: 5px;"">
-                  <a href=""https://www.shooperdooper.nl/auth/reset-password?token={resetToken}""
+                  <a href=""{baseUrl}/auth/reset-password?token={resetToken}""
                      style=""display: inline-block; padding: 15px 40px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; font-family: Arial, sans-serif;"">
                     Set Password
                   </a>
@@ -557,16 +557,16 @@ This link will expire in 30 minutes. If you did not request this, you can safely
 </table>";
     }
 
-    private static string TextConfirmationLinkBody(string confirmationToken)
+    private static string TextConfirmationLinkBody(string confirmationToken, string baseUrl)
     {
         return @$"Thank you for booking an appointment at Shooper Dooper!
-            
+
             To confirm your booking, please copy and paste the following link into your browser.
-            
-            https://www.shooperdooper.nl/booking/confirm?token={confirmationToken}";
+
+            {baseUrl}/booking/confirm?token={confirmationToken}";
     }
 
-    private static string HtmlConfirmationLinkBody(string confirmationToken)
+    private static string HtmlConfirmationLinkBody(string confirmationToken, string baseUrl)
     {
         return @$"<table width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #f4f4f4; padding: 20px;"">
   <tr>
@@ -593,7 +593,7 @@ This link will expire in 30 minutes. If you did not request this, you can safely
             <table cellpadding=""0"" cellspacing=""0"" style=""margin: 30px 0;"">
               <tr>
                 <td align=""center"" style=""background-color: #769A95; border-radius: 5px;"">
-                  <a href=""https://www.shooperdooper.nl/booking/confirm?token={confirmationToken}""
+                  <a href=""{baseUrl}/booking/confirm?token={confirmationToken}""
                      style=""display: inline-block; padding: 15px 40px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; font-family: Arial, sans-serif;"">
                     Confirm Appointment
                   </a>

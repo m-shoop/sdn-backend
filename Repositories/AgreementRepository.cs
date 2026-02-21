@@ -303,6 +303,32 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
         return await command.ExecuteNonQueryAsync();
     }
 
+    public async Task<List<Agreement>> GetConfirmedAgreementsForTech(int techId, DateOnly fromDate)
+    {
+        var agreements = new List<Agreement>();
+        const int CONFIRMED_STATUS = 1;
+
+        await using var command = _dataSource.CreateCommand(@"
+            SELECT * FROM agreements
+            WHERE tech_id = $1 AND status = $2 AND date >= $3
+            ORDER BY date, start_time;");
+
+        command.Parameters.AddWithValue(techId);
+        command.Parameters.AddWithValue(CONFIRMED_STATUS);
+        command.Parameters.AddWithValue(fromDate);
+
+        await using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            var agreement = await ReadEntityFromReader(reader);
+            if (agreement != null)
+                agreements.Add(agreement);
+        }
+
+        return agreements;
+    }
+
     public async Task<int> CreateConfirmedAgreement(Agreement agreement)
     {
         await using var command = _dataSource.CreateCommand(@"
