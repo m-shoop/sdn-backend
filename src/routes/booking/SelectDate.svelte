@@ -38,7 +38,13 @@
 
     async function fetchSlots() {
         if (!dates) return; //safety check
-        const payload = { 
+
+        // Clear stale slots from any previously selected service
+        for (const key in dateToSlotsDict) {
+            delete dateToSlotsDict[key];
+        }
+
+        const payload = {
             Tech: "1",  // this should be optional, and passed in
             Salon: "1",  // we'll need to pass this into the function
             Service: `${selectedSlot?.service?.id}`, // service ID selected in first screen
