@@ -45,7 +45,7 @@
             DateBegin: dates[0], 
             DateEnd: dates[dates.length-1]
         };
-        const res = await fetch("http://localhost:5075/availability", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/availability`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)

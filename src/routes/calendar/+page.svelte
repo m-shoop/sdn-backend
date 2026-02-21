@@ -103,7 +103,7 @@
 
         try {
             const res = await fetch(
-                `http://localhost:5075/tech/calendar?date=${selectedDateString()}`,
+                `${import.meta.env.VITE_API_URL}/tech/calendar?date=${selectedDateString()}`,
                 { headers: { Authorization: `Bearer ${auth.token}` } }
             );
 

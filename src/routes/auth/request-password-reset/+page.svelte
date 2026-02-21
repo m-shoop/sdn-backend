@@ -9,7 +9,7 @@
         event.preventDefault();
         errorMessage = '';
 
-        const res = await fetch("http://localhost:5075/auth/request-password-reset", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/request-password-reset`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ Email: email })

@@ -25,7 +25,7 @@
             return;
         }
 
-        const res = await fetch("http://localhost:5075/auth/set-password", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/set-password`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ Token: token, NewPassword: newPassword })

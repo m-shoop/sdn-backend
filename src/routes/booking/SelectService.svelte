@@ -29,7 +29,7 @@
             Salon: "1",  // hard-code for now (so naughty!)
         };
 
-        const res = await fetch("http://localhost:5075/services", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/services`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)

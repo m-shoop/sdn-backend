@@ -2,7 +2,7 @@
 </script>
 
 <!-- Nailart Section -->
-<section class="panel pin-panel pink-bg nailart-panel">
+<section class="panel pin-panel warm-pink-bg nailart-panel">
 
         <div class="nailart-img img-row">
             <img src="images/RubyRed.JPEG" alt="Demon Slayer anime-inspired nail art"

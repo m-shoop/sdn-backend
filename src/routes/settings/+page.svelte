@@ -4,7 +4,7 @@
     import Footer from '../Footer.svelte';
     import { auth } from '$lib/stores/auth';
 
-    const API = 'http://localhost:5075';
+    const API = import.meta.env.VITE_API_URL;
 
     let loading     = $state(true);
     let saving      = $state(false);
@@ -12,17 +12,36 @@
     let successMsg  = $state('');
 
     let emailNotificationsEnabled = $state(true);
+    let feedUrl     = $state('');
+    let copyLabel   = $state('Copy URL');
 
     function authHeaders() {
         return { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` };
     }
 
+    function webcalUrl(url: string) {
+        return url.replace(/^https?/, 'webcal');
+    }
+
+    async function copyFeedUrl() {
+        await navigator.clipboard.writeText(feedUrl);
+        copyLabel = 'Copied!';
+        setTimeout(() => { copyLabel = 'Copy URL'; }, 2000);
+    }
+
     onMount(async () => {
         try {
-            const res = await fetch(`${API}/tech/settings`, { headers: authHeaders() });
-            if (!res.ok) { fetchError = 'Failed to load settings.'; return; }
-            const data = await res.json();
+            const [settingsRes, feedRes] = await Promise.all([
+                fetch(`${API}/tech/settings`, { headers: authHeaders() }),
+                fetch(`${API}/tech/calendar/feed-url`, { headers: authHeaders() })
+            ]);
+            if (!settingsRes.ok) { fetchError = 'Failed to load settings.'; return; }
+            const data = await settingsRes.json();
             emailNotificationsEnabled = data.emailNotificationsEnabled;
+            if (feedRes.ok) {
+                const feedData = await feedRes.json();
+                feedUrl = feedData.feedUrl;
+            }
         } catch {
             fetchError = 'Network error.';
         } finally {
@@ -84,6 +103,29 @@
                     </span>
                     Email me when an appointment is booked, modified, or cancelled
                 </label>
+            </section>
+
+            <section class="settings-section">
+                <h2 class="section-heading">Apple Calendar</h2>
+                <p class="section-desc">
+                    Subscribe to a live feed of your confirmed appointments in Apple Calendar.
+                    New bookings and cancellations will appear automatically.
+                </p>
+                {#if feedUrl}
+                    <div class="calendar-actions">
+                        <a class="btn btn-primary" href={webcalUrl(feedUrl)}>
+                            Subscribe in Apple Calendar
+                        </a>
+                        <button class="btn btn-secondary" onclick={copyFeedUrl}>
+                            {copyLabel}
+                        </button>
+                    </div>
+                    <p class="feed-hint">
+                        Use "Subscribe in Apple Calendar" on this device, or copy the URL to add it manually on another device.
+                    </p>
+                {:else}
+                    <p class="section-desc">Feed URL unavailable.</p>
+                {/if}
             </section>
 
             <div class="actions">
@@ -228,6 +270,22 @@
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn:not(:disabled):active { transform: scale(0.97); }
 
-    .btn-primary       { background: var(--green-color, #769a95); color: #fff; }
+    .btn-primary       { background: var(--green-color, #769a95); color: #fff; text-decoration: none; }
     .btn-primary:hover { opacity: 0.88; }
+
+    .btn-secondary       { background: #f0f0f0; color: var(--black-color, #3f3f44); }
+    .btn-secondary:hover { background: #e0e0e0; }
+
+    .calendar-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .feed-hint {
+        margin: 0.75rem 0 0 0;
+        font-size: 0.8rem;
+        color: #999;
+    }
 </style>

@@ -5,7 +5,7 @@
     import Footer from '../Footer.svelte';
     import { auth } from '$lib/stores/auth';
 
-    const API = 'http://localhost:5075';
+    const API = import.meta.env.VITE_API_URL;
     const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
     // ── Types ────────────────────────────────────────────────────────────────

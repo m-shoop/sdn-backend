@@ -10,7 +10,7 @@
     </div>
 
     <div>
-        <img src="/images/SDNLogo.PNG" alt="Logo" class="img-rounded">
+        <img src="/images/Full-color-Logo.png" alt="Logo" class="img-rounded">
     </div>
 
 </section>
@@ -19,7 +19,6 @@
     /* img-rounded class for rounded corner images */
     .img-rounded {
         border-radius: 20%;
-        border: 2px solid gray;
         max-width: 85vw;
     }
 
