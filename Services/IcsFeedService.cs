@@ -47,7 +47,7 @@ public class IcsFeedService(JwtSettings jwtSettings, AgreementRepository agreeme
         sb.AppendLine("PRODID:-//Shooper Dooper Nails//Appointments//EN");
         sb.AppendLine("CALSCALE:GREGORIAN");
         sb.AppendLine("METHOD:PUBLISH");
-        sb.AppendLine("X-WR-CALNAME:SDN Appointments");
+        sb.AppendLine("X-WR-CALNAME:Shooper Dooper Nail Appts");
 
         foreach (var appt in agreements)
         {
