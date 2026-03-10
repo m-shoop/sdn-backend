@@ -5,9 +5,10 @@ using Npgsql;
 
 namespace SdnBackend.Services;
 
-public class AvailabilityService(NpgsqlDataSource dataSource)
+public class AvailabilityService(NpgsqlDataSource dataSource, AgreementRepository agreementRepository)
 {
     private readonly NpgsqlDataSource _dataSource = dataSource;
+    private readonly AgreementRepository _agreementRepository = agreementRepository;
 
     /// <summary>
     /// Fetches available time slots for a given service at a salon within a date range.
@@ -36,7 +37,6 @@ public class AvailabilityService(NpgsqlDataSource dataSource)
             return (null, "End date must be after start date");
 
         var serviceDto = new ServiceDto(service.Id, service.Name, service.Duration);
-        var agreeRepo = new AgreementRepository(_dataSource);
         List<TechAvailableSlotsOnDateDto> techAvailableSlotsList = new();
 
         for (DateOnly currDate = startDate; currDate.DayNumber <= endDate.DayNumber; currDate = currDate.AddDays(1))
@@ -45,7 +45,7 @@ public class AvailabilityService(NpgsqlDataSource dataSource)
             {
                 // Retrieve the tech's list of agreements on this date
                 List<Agreement> techAgreementsOnDate =
-                    await agreeRepo.GetActiveAgreementsForTechOnDate(currDate, schedule.TechAccount);
+                    await _agreementRepository.GetActiveAgreementsForTechOnDate(currDate, schedule.TechAccount);
 
                 // Pass in the tech's agreements on that date
                 List<TimeOnly> availableTimes =

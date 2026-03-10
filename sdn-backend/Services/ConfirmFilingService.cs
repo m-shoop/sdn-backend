@@ -1,13 +1,11 @@
 using SdnBackend.Models;
 using SdnBackend.Repositories;
-using Npgsql;
 
 namespace SdnBackend.Services;
 
-public class ConfirmFilingService(NpgsqlDataSource dataSource, string confirmTokenHash)
+public class ConfirmFilingService(AgreementRepository agreementRepository)
 {
-    private readonly NpgsqlDataSource _dataSource = dataSource;
-    private readonly string _confirmTokenHash = confirmTokenHash;
+    private readonly AgreementRepository _agreementRepository = agreementRepository;
 
     // ProcessConfirmationToken is a method to handle a confirmation token passed in from the frontend
     // Typically when a user clicks a confirmation link in their confirmation email.
@@ -17,13 +15,10 @@ public class ConfirmFilingService(NpgsqlDataSource dataSource, string confirmTok
     //  2 - Token expired, new email sent
     //  3 - Appointment canceled
     //  4 - Failed (appointment in invalid state)
-    public async Task<int> ProcessConfirmationToken(IEmailService emailService)
+    public async Task<int> ProcessConfirmationToken(string confirmTokenHash, IEmailService emailService)
     {
-        // first spin up Agreement repository
-        AgreementRepository agreeRepo = new AgreementRepository(_dataSource);
-
         // look up agreement by token hash
-        Agreement? agreement = await agreeRepo.GetByConfirmationTokenHash(_confirmTokenHash);
+        Agreement? agreement = await _agreementRepository.GetByConfirmationTokenHash(confirmTokenHash);
 
         // if no agreement found, return error
         if (agreement == null)
@@ -39,7 +34,7 @@ public class ConfirmFilingService(NpgsqlDataSource dataSource, string confirmTok
             // mark as confirmed
             agreement.Confirm();
             // update the entity in the database
-            await agreeRepo.UpdateEntity(agreement);
+            await _agreementRepository.UpdateEntity(agreement);
             // send a final confirmation email
             ConfirmationEmail email = new ConfirmationEmail
             {

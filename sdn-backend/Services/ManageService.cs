@@ -5,10 +5,10 @@ using SdnBackend.Repositories;
 
 namespace SdnBackend.Services;
 
-public class ManageService(NpgsqlDataSource dataSource, IEmailService emailService, ILogger<ManageService> logger)
+public class ManageService(NpgsqlDataSource dataSource, IEmailService emailService, ILogger<ManageService> logger, AgreementRepository agreementRepository)
 {
     private readonly ScheduleRepository _scheduleRepo = new(dataSource, new AccountRepository(dataSource));
-    private readonly AgreementRepository _agreementRepo = new(dataSource);
+    private readonly AgreementRepository _agreementRepo = agreementRepository;
     private readonly ServiceRepository _serviceRepo = new(dataSource);
     private readonly AccountRepository _accountRepo = new(dataSource);
     private readonly SalonRepository _salonRepo = new(dataSource);

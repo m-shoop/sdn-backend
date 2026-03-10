@@ -1,6 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using SdnBackend.Repositories;
 
 namespace SdnBackend.Services;
@@ -8,13 +8,13 @@ namespace SdnBackend.Services;
 public class GdprCleanupService : BackgroundService
 {
     private readonly ILogger<GdprCleanupService> _logger;
-    private readonly NpgsqlDataSource _dataSource;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly TimeSpan _checkInterval = TimeSpan.FromHours(24);
 
-    public GdprCleanupService(ILogger<GdprCleanupService> logger, NpgsqlDataSource dataSource)
+    public GdprCleanupService(ILogger<GdprCleanupService> logger, IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-        _dataSource = dataSource;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,8 +45,9 @@ public class GdprCleanupService : BackgroundService
         var cutoff = DateTime.UtcNow.AddYears(-1);
         var cutoffDate = DateOnly.FromDateTime(cutoff);
 
-        var agreementRepo = new AgreementRepository(_dataSource);
-        var accountRepo = new AccountRepository(_dataSource);
+        using var scope = _scopeFactory.CreateScope();
+        var agreementRepo = scope.ServiceProvider.GetRequiredService<AgreementRepository>();
+        var accountRepo = scope.ServiceProvider.GetRequiredService<AccountRepository>();
 
         // Step 1: delete appointments whose date is older than one year
         int agreementsDeleted = await agreementRepo.DeleteAgreementsOlderThan(cutoffDate);

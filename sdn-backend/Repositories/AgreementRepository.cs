@@ -5,13 +5,24 @@ using System.Threading.Tasks;
 
 namespace SdnBackend.Repositories;
 
-public class AgreementRepository(NpgsqlDataSource dataSource)
+public class AgreementRepository(NpgsqlDataSource dataSource, ILogger<AgreementRepository> logger)
 {
     private readonly NpgsqlDataSource _dataSource = dataSource;
+    private readonly ILogger<AgreementRepository> _logger = logger;
 
-    public async Task<int> SaveEntity(Agreement agreement)
+    /// <summary>
+    /// Saves a new pending agreement to the database. Only pending appointments should be
+    /// created this way; use CreateConfirmedAgreement for confirmed appointments.
+    /// </summary>
+    public async Task<int> SavePendingAgreement(Agreement agreement)
     {
-        await using var command = _dataSource.CreateCommand(@"INSERT INTO agreements 
+        if (agreement.ApptStatus != AppointmentStatus.pending)
+            throw new InvalidOperationException("SavePendingAgreement can only be used for pending appointments.");
+
+        if (agreement.ExpireTimestamp == null || agreement.ConfirmTokenHash == null)
+            throw new InvalidOperationException("Pending appointments must have a token hash and expiry timestamp.");
+
+        await using var command = _dataSource.CreateCommand(@"INSERT INTO agreements
         (date, start_time, service_id, tech_id, client_id, salon_id, status, expires_at, confirmation_token_hash, creation_timestamp)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);");
 
@@ -22,23 +33,9 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
         command.Parameters.AddWithValue(agreement.Client.Id); // $5
         command.Parameters.AddWithValue(agreement.Salon.Id); // $6
         command.Parameters.AddWithValue((int)agreement.ApptStatus); // $7
-
-        if (agreement.ApptStatus == AppointmentStatus.pending)
-        {
-            if (agreement.ExpireTimestamp == null || agreement.ConfirmTokenHash == null)
-            {
-                throw new InvalidOperationException("Pending appointments must have a token hash and expiry timestamp.");
-            }
-            command.Parameters.AddWithValue(agreement.ExpireTimestamp); // $8
-            command.Parameters.AddWithValue(agreement.ConfirmTokenHash); // $9
-            command.Parameters.AddWithValue(agreement.CreateTimestamp); // $10
-        }
-
-        // TODO: implement confirmed, canceled and expired statuses
-        else
-        {
-            throw new InvalidOperationException("Other appointment statuses not yet implemented.");
-        }      
+        command.Parameters.AddWithValue(agreement.ExpireTimestamp); // $8
+        command.Parameters.AddWithValue(agreement.ConfirmTokenHash); // $9
+        command.Parameters.AddWithValue(agreement.CreateTimestamp); // $10
 
         try
         {
@@ -47,10 +44,10 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            _logger.LogError(ex, "Failed to save agreement for client {ClientId} on {Date}", agreement.Client.Id, agreement.Date);
             throw;
         }
-        
+
     }
 
     public async Task<int> UpdateEntity(Agreement agreement)
@@ -67,11 +64,11 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
         command.Parameters.AddWithValue(agreement.Client?.Id ?? (object)DBNull.Value); // $5
         command.Parameters.AddWithValue(agreement.Salon?.Id ?? (object)DBNull.Value); // $6
         command.Parameters.AddWithValue((int)agreement.ApptStatus); // $7
-        command.Parameters.AddWithValue(agreement?.ExpireTimestamp ?? (object)DBNull.Value); // $8
-        command.Parameters.AddWithValue(agreement?.ConfirmTimestamp ?? (object)DBNull.Value); // $9
-        command.Parameters.AddWithValue(agreement?.ConfirmTokenHash ?? (object)DBNull.Value); // $10
-        command.Parameters.AddWithValue(agreement?.CreateTimestamp ?? (object)DBNull.Value); // $11
-        command.Parameters.AddWithValue(agreement?.Id ?? (object)DBNull.Value); // $12
+        command.Parameters.AddWithValue(agreement.ExpireTimestamp ?? (object)DBNull.Value); // $8
+        command.Parameters.AddWithValue(agreement.ConfirmTimestamp ?? (object)DBNull.Value); // $9
+        command.Parameters.AddWithValue(agreement.ConfirmTokenHash ?? (object)DBNull.Value); // $10
+        command.Parameters.AddWithValue(agreement.CreateTimestamp); // $11
+        command.Parameters.AddWithValue(agreement.Id); // $12
 
         try
         {
@@ -80,7 +77,7 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            _logger.LogError(ex, "Failed to update agreement {AgreementId}", agreement.Id);
             throw;
         }
     }
@@ -95,17 +92,14 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
     public async Task<List<Agreement>> GetActiveAgreementsForTechOnDate(DateOnly date, Technician tech)
     {
         List<Agreement> listAgreements = new List<Agreement>();
-        const int PENDING_STATUS = 0;
-        const int CONFIRMED_STATUS = 1;
 
-        // 
         await using var command = _dataSource.CreateCommand(@"SELECT * FROM agreements WHERE
             date=$1 AND tech_id=$2 AND (status=$3 OR status=$4);");
 
         command.Parameters.AddWithValue(date); // $1
         command.Parameters.AddWithValue(tech.Id); // $2
-        command.Parameters.AddWithValue(PENDING_STATUS); // $3
-        command.Parameters.AddWithValue(CONFIRMED_STATUS); // $4
+        command.Parameters.AddWithValue((int)AppointmentStatus.pending); // $3
+        command.Parameters.AddWithValue((int)AppointmentStatus.confirmed); // $4
 
         await using var reader = await command.ExecuteReaderAsync(); 
 
@@ -135,7 +129,6 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
         ServiceRepository serviceRepo = new ServiceRepository(_dataSource);
 
         // now read out the raw values from SQL
-        // TODO: reactor for null handling
         var id = reader.GetInt32(reader.GetOrdinal("id"));
         DateOnly date = reader.GetFieldValue<DateOnly>(reader.GetOrdinal("date"));
         TimeOnly startTime = reader.GetFieldValue<TimeOnly>(reader.GetOrdinal("start_time"));
@@ -165,16 +158,15 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
         Account? clientAccount = await accountRepo.GetById(clientId);
 
         // make sure we have required properties
-        // TODO: add errors/exceptions to pass up?
         if (techAccount is not Technician tech || clientAccount is not Client client)
         {
+            _logger.LogWarning("Agreement {AgreementId} references an account that is not the expected role (expected Technician and Client).", id);
             return null;
         }
 
-        // what about the date and time?
-        // TODO: handle null inputs from Npgsql's return for the reader
         if (salon == null || service == null)
         {
+            _logger.LogWarning("Agreement {AgreementId} references a missing salon or service (salonId={SalonId}, serviceId={ServiceId}).", id, salonId, serviceId);
             return null;
         }
 
@@ -214,16 +206,14 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
     public async Task<List<Agreement>> GetActiveAgreementsForTechOnDateExcluding(DateOnly date, Technician tech, int excludeId)
     {
         var listAgreements = new List<Agreement>();
-        const int PENDING_STATUS = 0;
-        const int CONFIRMED_STATUS = 1;
 
         await using var command = _dataSource.CreateCommand(@"SELECT * FROM agreements WHERE
             date=$1 AND tech_id=$2 AND (status=$3 OR status=$4) AND id != $5;");
 
         command.Parameters.AddWithValue(date);
         command.Parameters.AddWithValue(tech.Id);
-        command.Parameters.AddWithValue(PENDING_STATUS);
-        command.Parameters.AddWithValue(CONFIRMED_STATUS);
+        command.Parameters.AddWithValue((int)AppointmentStatus.pending);
+        command.Parameters.AddWithValue((int)AppointmentStatus.confirmed);
         command.Parameters.AddWithValue(excludeId);
 
         await using var reader = await command.ExecuteReaderAsync();
@@ -272,12 +262,11 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
     public async Task<List<Agreement>> GetExpiredPendingAgreements()
     {
         List<Agreement> expiredAgreements = new List<Agreement>();
-        const int PENDING_STATUS = 0; // AppointmentStatus.pending
 
         await using var command = _dataSource.CreateCommand(@"SELECT * FROM agreements
             WHERE status = $1 AND expires_at IS NOT NULL AND expires_at < $2;");
 
-        command.Parameters.AddWithValue(PENDING_STATUS); // $1
+        command.Parameters.AddWithValue((int)AppointmentStatus.pending); // $1
         command.Parameters.AddWithValue(DateTime.Now); // $2
 
         await using var reader = await command.ExecuteReaderAsync();
@@ -306,7 +295,6 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
     public async Task<List<Agreement>> GetConfirmedAgreementsForTech(int techId, DateOnly fromDate)
     {
         var agreements = new List<Agreement>();
-        const int CONFIRMED_STATUS = 1;
 
         await using var command = _dataSource.CreateCommand(@"
             SELECT * FROM agreements
@@ -314,7 +302,7 @@ public class AgreementRepository(NpgsqlDataSource dataSource)
             ORDER BY date, start_time;");
 
         command.Parameters.AddWithValue(techId);
-        command.Parameters.AddWithValue(CONFIRMED_STATUS);
+        command.Parameters.AddWithValue((int)AppointmentStatus.confirmed);
         command.Parameters.AddWithValue(fromDate);
 
         await using var reader = await command.ExecuteReaderAsync();

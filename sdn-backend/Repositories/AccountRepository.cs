@@ -118,7 +118,6 @@ public class AccountRepository(NpgsqlDataSource dataSource)
         return affectedRows;
     }
 
-    // TODO: this needs to return a potential list of accounts, not just one account
     public async Task<Account?> GetByEmailAndRole(string email, string role)
     {
         await using var command = _dataSource.CreateCommand(@"SELECT * FROM

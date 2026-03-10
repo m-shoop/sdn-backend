@@ -1,31 +1,30 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 using SdnBackend.Repositories;
 using SdnBackend.Models;
-using Npgsql;
 
 namespace SdnBackend.Services;
 
 public class AppointmentExpirationService : BackgroundService
 {
     private readonly ILogger<AppointmentExpirationService> _logger;
-    private readonly IConfiguration _configuration;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1); // Run every hour
 
     public AppointmentExpirationService(
         ILogger<AppointmentExpirationService> logger,
-        IConfiguration configuration)
+        IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-        _configuration = configuration;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Appointment Expiration Service is starting.");
 
-        // Run immediately on startup, then every 12 hours
+        // Run immediately on startup, then every hour
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -37,7 +36,7 @@ public class AppointmentExpirationService : BackgroundService
                 _logger.LogError(ex, "Error occurred while expiring appointments.");
             }
 
-            // Wait 12 hours before next check
+            // Wait before next check
             await Task.Delay(_checkInterval, stoppingToken);
         }
 
@@ -48,12 +47,8 @@ public class AppointmentExpirationService : BackgroundService
     {
         _logger.LogInformation("Checking for expired appointments...");
 
-        string connectionString =
-            _configuration.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("Connection string not found");
-
-        await using var dataSource = NpgsqlDataSource.Create(connectionString);
-        var agreementRepo = new AgreementRepository(dataSource);
+        using var scope = _scopeFactory.CreateScope();
+        var agreementRepo = scope.ServiceProvider.GetRequiredService<AgreementRepository>();
 
         // Get all pending appointments that have expired
         var expiredAgreements = await agreementRepo.GetExpiredPendingAgreements();
@@ -64,7 +59,7 @@ public class AppointmentExpirationService : BackgroundService
             return;
         }
 
-        _logger.LogInformation($"Found {expiredAgreements.Count} expired appointment(s).");
+        _logger.LogInformation("Found {Count} expired appointment(s).", expiredAgreements.Count);
 
         int expiredCount = 0;
         foreach (var agreement in expiredAgreements)
@@ -76,14 +71,15 @@ public class AppointmentExpirationService : BackgroundService
                 expiredCount++;
 
                 _logger.LogInformation(
-                    $"Expired appointment ID {agreement.Id} for client {agreement.Client.Email}");
+                    "Expired appointment ID {Id} for client {Email}.",
+                    agreement.Id, agreement.Client.Email);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to expire appointment ID {agreement.Id}");
+                _logger.LogError(ex, "Failed to expire appointment ID {Id}.", agreement.Id);
             }
         }
 
-        _logger.LogInformation($"Successfully expired {expiredCount} appointment(s).");
+        _logger.LogInformation("Successfully expired {Count} appointment(s).", expiredCount);
     }
 }

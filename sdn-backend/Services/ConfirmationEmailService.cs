@@ -99,7 +99,6 @@ public class SmtpEmailService : IEmailService
 
             var builder = new BodyBuilder();
             // Set the plain-text version first
-            // TODO : add baseURL to app settings file, for now hardcoded
             if (emailTemplate == 1)
             {
                 builder.TextBody = TextConfirmationLinkBody(email.ConfirmationToken!, _settings.BaseUrl);

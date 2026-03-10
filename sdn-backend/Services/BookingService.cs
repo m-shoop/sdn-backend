@@ -5,11 +5,13 @@ using Npgsql;
 
 namespace SdnBackend.Services;
 
-public class BookingService(NpgsqlDataSource dataSource, IEmailService emailService, ILogger<BookingService> logger)
+public class BookingService(NpgsqlDataSource dataSource, IEmailService emailService, ILogger<BookingService> logger, AgreementRepository agreementRepository, AccountRepository accountRepository)
 {
     private readonly NpgsqlDataSource _dataSource = dataSource;
     private readonly IEmailService _emailService = emailService;
     private readonly ILogger<BookingService> _logger = logger;
+    private readonly AgreementRepository _agreementRepository = agreementRepository;
+    private readonly AccountRepository _accountRepository = accountRepository;
 
     /// <summary>
     /// Processes a booking request: validates inputs, creates or retrieves client account,
@@ -57,8 +59,7 @@ public class BookingService(NpgsqlDataSource dataSource, IEmailService emailServ
             throw new InvalidOperationException($"Appointment time {request.StartTime} is not valid.");
 
         // Retrieve or create client account
-        var accountRepo = new AccountRepository(_dataSource);
-        Account? account = await accountRepo.GetByEmailAndRole(request.ClientEmail, "Client");
+        Account? account = await _accountRepository.GetByEmailAndRole(request.ClientEmail, "Client");
 
         Client client;
         if (account is Client existingClient)
@@ -67,8 +68,8 @@ public class BookingService(NpgsqlDataSource dataSource, IEmailService emailServ
         }
         else
         {
-            await accountRepo.SaveEntity(new Client(0, request.ClientName, request.ClientEmail));
-            var created = await accountRepo.GetByEmailAndRole(request.ClientEmail, "Client");
+            await _accountRepository.SaveEntity(new Client(0, request.ClientName, request.ClientEmail));
+            var created = await _accountRepository.GetByEmailAndRole(request.ClientEmail, "Client");
             if (created is not Client newClient)
                 return (false, "Failed to create client account.", 500);
             client = newClient;
@@ -87,11 +88,10 @@ public class BookingService(NpgsqlDataSource dataSource, IEmailService emailServ
 
         string confirmationToken = agreement.MarkPending();
 
-        var agreeRepo = new AgreementRepository(_dataSource);
-        await agreeRepo.SaveEntity(agreement);
+        await _agreementRepository.SavePendingAgreement(agreement);
         _logger.LogInformation("Agreement saved to database for client {ClientEmail}", request.ClientEmail);
 
-        await accountRepo.TouchLastActivity(client.Id);
+        await _accountRepository.TouchLastActivity(client.Id);
 
         // Validate confirmation token
         if (string.IsNullOrWhiteSpace(confirmationToken))
@@ -128,7 +128,7 @@ public class BookingService(NpgsqlDataSource dataSource, IEmailService emailServ
 
         try
         {
-            bool notifyEnabled = await accountRepo.GetEmailNotificationPreference(tech.Id);
+            bool notifyEnabled = await _accountRepository.GetEmailNotificationPreference(tech.Id);
             if (notifyEnabled)
             {
                 await _emailService.SendTechNotificationAsync(new TechNotificationEmail
@@ -165,8 +165,7 @@ public class BookingService(NpgsqlDataSource dataSource, IEmailService emailServ
         if (!int.TryParse(rawAccountId, out int accountId))
             return null;
 
-        var accountRepo = new AccountRepository(_dataSource);
-        return await accountRepo.GetById(accountId);
+        return await _accountRepository.GetById(accountId);
     }
 
     // from StackExchange https://stackoverflow.com/questions/1365407/c-sharp-code-to-validate-email-address

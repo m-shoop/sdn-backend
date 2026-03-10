@@ -72,6 +72,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TechCalendarService>();
 
 // Register manage service
+builder.Services.AddScoped<ConfirmFilingService>();
 builder.Services.AddScoped<ManageService>();
 builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddScoped<AgreementRepository>();
@@ -154,7 +155,7 @@ app.MapPost("/booking", async (BookingRequest request, BookingService bookingSer
 app.MapPost("/api/bookings/confirm", async (
     ConfirmationRequest request,
     IEmailService emailService,
-    NpgsqlDataSource dataSource,
+    ConfirmFilingService confirmFilingService,
     ILogger<Program> logger) =>
 {
     if (request.Token is null)
@@ -168,9 +169,8 @@ app.MapPost("/api/bookings/confirm", async (
 
     try
     {
-        var confirmService = new ConfirmFilingService(dataSource, Agreement.HashToken(request.Token));
-
-        int returnValue = await confirmService.ProcessConfirmationToken(emailService);
+        int returnValue = await confirmFilingService.ProcessConfirmationToken(
+            Agreement.HashToken(request.Token), emailService);
         if (returnValue > 0)
         {
             string error = returnValue switch

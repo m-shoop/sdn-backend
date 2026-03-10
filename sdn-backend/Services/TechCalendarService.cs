@@ -5,10 +5,10 @@ using SdnBackend.Repositories;
 
 namespace SdnBackend.Services;
 
-public class TechCalendarService(NpgsqlDataSource dataSource)
+public class TechCalendarService(NpgsqlDataSource dataSource, AgreementRepository agreementRepository)
 {
     private readonly ScheduleRepository _scheduleRepo = new(dataSource, new AccountRepository(dataSource));
-    private readonly AgreementRepository _agreementRepo = new(dataSource);
+    private readonly AgreementRepository _agreementRepo = agreementRepository;
     private readonly AccountRepository _accountRepo = new(dataSource);
 
     public async Task<CalendarDayResponseDto?> GetCalendarDay(int techId, DateOnly date)

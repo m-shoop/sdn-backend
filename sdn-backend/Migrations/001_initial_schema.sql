@@ -370,6 +370,14 @@ ALTER TABLE ONLY core.accounts
 
 
 --
+-- Name: accounts accounts_email_role_unique; Type: CONSTRAINT; Schema: core; Owner: shooperdooper
+--
+
+ALTER TABLE ONLY core.accounts
+    ADD CONSTRAINT accounts_email_role_unique UNIQUE (email, role);
+
+
+--
 -- Name: agreements agreements_pkey; Type: CONSTRAINT; Schema: core; Owner: shooperdooper
 --
 

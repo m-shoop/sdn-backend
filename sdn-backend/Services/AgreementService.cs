@@ -29,7 +29,7 @@ public class AgreementService(AgreementRepository agreeRepo, ServiceRepository s
     public async Task<Agreement?> CreateAgreement(string date, string time, int serviceId, int techId, int clientId, int salonId)
     {
         DateOnly agreementDate = DateOnly.ParseExact(date, "yyyyMMdd");
-        TimeOnly agreementTime = TimeOnly.ParseExact(time, "HH:mm"); // totally not sure about this, Microsoft's documentation isn't very good..
+        TimeOnly agreementTime = TimeOnly.ParseExact(time, "HH:mm");
 
         Service? service = await _servRepo.GetById(serviceId) ?? throw new InvalidOperationException(
                 $"Service {serviceId} does not exist in database."
