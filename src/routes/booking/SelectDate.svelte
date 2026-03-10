@@ -45,8 +45,8 @@
         }
 
         const payload = {
-            Tech: "1",  // this should be optional, and passed in
-            Salon: "1",  // we'll need to pass this into the function
+            Tech: "1",  // hard-coded - see issue SHO-74
+            Salon: "1",  // hard-coded - see issue SHO-74
             Service: `${selectedSlot?.service?.id}`, // service ID selected in first screen
             DateBegin: dates[0], 
             DateEnd: dates[dates.length-1]

@@ -9,7 +9,7 @@
     let servicesData : Salon | null = $state(null);
 
     // when supporting more than one salon, we'll have to expand this out more
-    // taking short-cut for now. Don't hate me!
+    // see issue SHO-74
     interface Salon {
         salonId: number,
         techServDtoList: TechServices[];
@@ -25,8 +25,8 @@
         loadingServices = true;
 
         const payload = { 
-            Tech: "1",  // hard-code for now (so naughty!)
-            Salon: "1",  // hard-code for now (so naughty!)
+            Tech: "1",  // hard-coded - see issue SHO-74
+            Salon: "1",  // hard-coded - see issue SHO-74
         };
 
         const res = await fetch(`${import.meta.env.VITE_API_URL}/services`, {

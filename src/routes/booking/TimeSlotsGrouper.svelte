@@ -18,24 +18,19 @@
 
     });
 
-    // TODO: move these three into a single helper function
-    let morningSlots: Slot[] = $derived(dateToSlotsDict[selectedSlot.date].filter((slot : Slot) => {
-      const minutes = timeStringToMinutes(slot.startTime);
-      if (minutes == -1) return false;
-      return minutes >= MORNING_START && minutes < AFTERNOON_START;
-    }));
+    function getSlotsForPeriod(start: number, end: number): Slot[] {
+      return dateToSlotsDict[selectedSlot.date].filter((slot: Slot) => {
+        const minutes = timeStringToMinutes(slot.startTime);
+        if (minutes === -1) return false;
+        return start < end
+          ? minutes >= start && minutes < end   // normal range
+          : minutes >= start || minutes < end;  // wraps midnight
+      });
+    }
 
-    let afternoonSlots: Slot[] = $derived(dateToSlotsDict[selectedSlot.date].filter((slot : Slot) => {
-      const minutes = timeStringToMinutes(slot.startTime);
-      if (minutes == -1) return false;
-      return minutes >= AFTERNOON_START && minutes < EVENING_START;
-    }));
-
-    let eveningSlots: Slot[] = $derived(dateToSlotsDict[selectedSlot.date].filter((slot : Slot) => {
-      const minutes = timeStringToMinutes(slot.startTime);
-      if (minutes == -1) return false;
-      return minutes >= EVENING_START || minutes < MORNING_START;
-    }));
+    let morningSlots: Slot[] = $derived(getSlotsForPeriod(MORNING_START, AFTERNOON_START));
+    let afternoonSlots: Slot[] = $derived(getSlotsForPeriod(AFTERNOON_START, EVENING_START));
+    let eveningSlots: Slot[] = $derived(getSlotsForPeriod(EVENING_START, MORNING_START));
 
     function timeStringToMinutes(time: string | null)
     {

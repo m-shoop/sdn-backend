@@ -8,7 +8,7 @@
             StartTime: selectedSlot.startTime,
             Service: `${selectedSlot.service.id}`,  
             Tech: `${selectedSlot.techId}`, 
-            Salon: "1", 
+            Salon: "1", // hard-coded - see issue SHO-74
             ClientEmail: clientEmail,
             ClientName: clientName
         };
@@ -50,7 +50,7 @@
             id="name"
             name="name"
             required
-            minlength="2"
+            minlength="8"
             autocomplete="name"
             bind:value={clientName}
         />
