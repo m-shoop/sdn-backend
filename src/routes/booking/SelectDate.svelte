@@ -23,8 +23,8 @@
     // array of DTOs objects
     let data: TechAvailableSlotsOnDateDto[] = [];
 
-    // default to showing dates for next two weeks
-    for (let i = 0; i < 14; i++ )
+    // default to showing dates for next three months
+    for (let i = 0; i < 90; i++ )
     {
         dates.push(toDateKey(date));
         date.setDate(date.getDate() + 1);
