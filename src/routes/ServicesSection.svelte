@@ -43,7 +43,20 @@
         border: 2px solid black;
         border-radius: 0.5rem;
         text-decoration: none;
-        padding: 0.25rem;
+        padding: 0.35rem 0.85rem;
+        cursor: pointer;
+        transition: filter 0.15s ease, transform 0.15s ease;
+        display: inline-block;
+    }
+
+    .custom-button:hover {
+        filter: brightness(0.95);
+        transform: translateY(-1px);
+    }
+
+    .custom-button:active {
+        transform: translateY(0);
+        filter: brightness(0.9);
     }
 
     .services-div-first {
@@ -92,7 +105,7 @@
     /* up to 6 width : 5 height ratio (most mobile) */
     @media (max-aspect-ratio: 6/5) {
         .custom-button {
-            padding: 0.1rem;
+            padding: 0.2rem 0.6rem;
         }
 
         .services-div-first {
