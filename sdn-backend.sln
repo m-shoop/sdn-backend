@@ -2,9 +2,9 @@
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sdn-backend", "sdn-backend\sdn-backend.csproj", "{23BBB79E-BD53-CF6D-BAFB-FD3D9167EA96}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sdn-backend", "backend\sdn-backend.csproj", "{23BBB79E-BD53-CF6D-BAFB-FD3D9167EA96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sdn-backend.Tests", "sdn-backend.Tests\sdn-backend.Tests.csproj", "{766CA69D-62D5-4270-A48C-F4B8299E0CAE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sdn-backend.Tests", "backend.Tests\sdn-backend.Tests.csproj", "{766CA69D-62D5-4270-A48C-F4B8299E0CAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
