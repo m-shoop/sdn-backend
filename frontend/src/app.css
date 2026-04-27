@@ -1,0 +1,155 @@
+:root {
+    --green-color: #769A95;
+    --light-green-color: #BFD6D3;
+    --beige-color: #F0E0C1;
+    --pink-color: #E5B8C9;
+    --indigo-color: #5E6C7A;
+    --white-color: #FAF9F6;
+    --black-color: #3F3F44;
+    --warm-pink-color: #FBCDC1;
+    --totoro-beige-color: #F6EAE5;
+    --lilac-color: #EEDAFF;
+    --button-gap: 6px;
+    --selection-button-bg-color: var(--white-color);
+    --selection-button-color: var(--black-color);
+    --nav-height: 66px;
+    --font-size-base: clamp(0.9rem, 2vw, 1.75rem);
+    --font-size-h1: clamp(2rem, 5vw, 4rem);
+    --font-size-h2: clamp(1.5rem, 4vw, 3rem);
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/Outfit-VariableFont_wght.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    overscroll-behavior-x: none;
+}
+
+body, button {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--white-color);
+    border-width: 0px;
+}
+
+body { 
+    font-size: var(--font-size-base); 
+}
+
+h1 { 
+    font-size: var(--font-size-h1); 
+}
+
+h2 {
+    font-size: var(--font-size-h2);
+}
+
+/* headings with heavier weight */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    text-align: center;
+    margin: 0 auto;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+
+section:first-of-type {
+    margin-top: var(--nav-height);
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    height: 66px;
+    width: 100vw;
+    z-index: 1;
+    padding: 0;
+}
+
+.white-bg {
+    background-color: var(--white-color);
+    color: var(--black-color);
+}
+
+.beige-bg {
+    background-color: var(--beige-color);
+    color: var(--black-color);
+}
+
+.green-bg {
+    background-color: var(--green-color);
+    color: var(--white-color);
+}
+
+.light-green-bg {
+    background-color: var(--light-green-color);
+    color: var(--black-color);
+}
+
+.pink-bg {
+    background-color: var(--pink-color);
+    color: var(--white-color);
+}
+
+.indigo-bg {
+    background-color: var(--indigo-color);
+    color: var(--white-color);
+}
+
+.warm-pink-bg {
+    background-color: var(--warm-pink-color);
+    color: var(--black-color);
+}
+
+.totoro-beige-bg {
+    background-color: var(--totoro-beige-color);
+    color: var(--black-color);
+}
+
+.lilac-bg {
+    background-color: #EEDAFF;
+    color: var(--black-color);
+}
+
+.panel {
+    display: flex;
+    align-items: center;
+    align-content: space-between;
+    flex-direction: row;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: calc(100vh - var(--nav-height));
+    overflow: hidden;
+    /*position: relative;*/
+    text-align: center;
+}
+
+.selection-button {
+    background-color: var(--selection-button-bg-color);
+    color: var(--selection-button-color);
+}
+
+.text-box {
+    padding: 0.75rem;
+}
+
+/* up to 6 width : 5 height ratio (most mobile) */
+@media (max-aspect-ratio: 6/5) {
+    .panel {
+        flex-direction: column;
+    }
+}
