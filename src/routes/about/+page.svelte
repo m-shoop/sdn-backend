@@ -1,11 +1,10 @@
 <script lang="ts">
     import NavigationBar from '../NavigationBar.svelte';
     import Footer from '../Footer.svelte';
-    // Need to add pinning animation (pin-panel class javascript)
 </script>
 
 <NavigationBar />
-<section class="panel pin-panel green-bg">
+<section class="panel green-bg">
     <div>
         <img 
         src="/images/TylerBioPic.PNG" 

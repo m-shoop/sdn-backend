@@ -3,7 +3,7 @@
 </script>
 
 <!-- Welcome Section -->
-<section class="panel pin-panel beige-bg" style="flex-direction: column;">
+<section class="panel beige-bg" style="flex-direction: column;">
 
     <div>
         <h1>Welcome to Shooper Dooper Nails!</h1>

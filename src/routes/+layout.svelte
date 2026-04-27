@@ -20,14 +20,12 @@
 
 		// Dynamically import and run animation modules
 		try {
-			const { initPanelPinning } = await import('$lib/animations/panel-pin');
 			const { initServicesBounce } = await import('$lib/animations/services-bounce');
 			const { initServicesHighlight } = await import('$lib/animations/services-highlight');
 			const { initButtonAnimation } = await import('$lib/animations/button-slide');
 			const { initImagesTween } = await import('$lib/animations/nailart-images');
 
 			// Initialize each animation if the function exists
-			initPanelPinning?.();
 			initServicesBounce?.();
 			initServicesHighlight?.();
 			initButtonAnimation?.();

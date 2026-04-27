@@ -1,7 +1,7 @@
 
 
 <!-- Scheduling Section -->
-<section class="panel pin-panel beige-bg sched-panel" style="flex-direction: column;">
+<section class="panel beige-bg sched-panel" style="flex-direction: column;">
 
     <div>
         <h2 id="scheduling">Schedule an appointment</h2>
@@ -36,7 +36,6 @@
 <style>
 
     .custom-button {
-        border: 2px solid black;
         border-radius: 0.5rem;
         text-decoration: none;
         padding: 0.35rem;
