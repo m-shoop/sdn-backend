@@ -116,9 +116,6 @@ public class SmtpEmailService : IEmailService
 
             using var client = new SmtpClient();
 
-            // Temporarily keep this to isolate the issue
-            client.ServerCertificateValidationCallback = (s, cert, chain, errors) => true; // Accept for now to see what the actual error is
-
             _logger.LogInformation("Attempting to connect to SMTP server {Host}:{Port}", _settings.Host, _settings.Port);
 
             // Try Auto first
@@ -192,7 +189,6 @@ public class SmtpEmailService : IEmailService
             message.Body = builder.ToMessageBody();
 
             using var client = new SmtpClient();
-            client.ServerCertificateValidationCallback = (s, cert, chain, errors) => true;
             await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.Auto);
             await client.AuthenticateAsync(_settings.Username, _settings.Password);
             await client.SendAsync(message);
@@ -242,7 +238,6 @@ public class SmtpEmailService : IEmailService
             message.Body = builder.ToMessageBody();
 
             using var client = new SmtpClient();
-            client.ServerCertificateValidationCallback = (s, cert, chain, errors) => true;
             await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.Auto);
             await client.AuthenticateAsync(_settings.Username, _settings.Password);
             await client.SendAsync(message);
@@ -484,8 +479,6 @@ Service: {email.ServiceName} ({email.ServiceDuration} min)
             message.Body = builder.ToMessageBody();
 
             using var client = new SmtpClient();
-            client.ServerCertificateValidationCallback = (s, cert, chain, errors) => true;
-
             await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.Auto);
             await client.AuthenticateAsync(_settings.Username, _settings.Password);
             await client.SendAsync(message);
